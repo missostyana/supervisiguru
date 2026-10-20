@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPERVISI GURU AI (created :miss osty)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <script>
+        // Default Core Data
+        const INITIAL_DATA = {
+            currentUserRole: 'SUPERVISOR', // ADMIN, SUPERVISOR, GURU
+            currentUserId: 'SUP-001',
+            activeTeacherId: 'TCH-001',
+            activeTab: 'dashboard',
+            
+            users: [
+                { id: 'ADM-001', name: 'Dr. Osty M.Pd', role: 'ADMIN', email: 'osty@sekolah.sch.id', photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' },
+                { id: 'SUP-001', name: 'Drs. H. Ahmad Fauzi, M.Pd', role: 'SUPERVISOR', email: 'fauzi@pengawas.kemdikbud.go.id', photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150' },
+                { id: 'TCH-001', name: 'Siti Nurhaliza, S.Pd', role: 'GURU', nip: '198804122012012003', mapel: 'IPA / Biologi', unit: 'SMA Negeri 1 Digital', jenjang: 'SMA', kelas: 'X & XI', email: 'siti.nurhaliza@sekolah.sch.id', hp: '081234567890', status: 'Aktif', photo: 'https://images.unsplash.com/photo-1580894732413-a923631a1900?w=150' },
+                { id: 'TCH-002', name: 'Budi Santoso, M.Si', role: 'GURU', nip: '198501152010011012', mapel: 'Matematika', unit: 'SMA Negeri 1 Digital', jenjang: 'SMA', kelas: 'XII', email: 'budi.santoso@sekolah.sch.id', hp: '081298765432', status: 'Aktif', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+                { id: 'TCH-003', name: 'Dewi Lestari, S.Hum', role: 'GURU', nip: '199208202018022005', mapel: 'Bahasa Indonesia', unit: 'SMA Negeri 1 Digital', jenjang: 'SMA', kelas: 'X', email: 'dewi.lestari@sekolah.sch.id', hp: '081377889900', status: 'Aktif', photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150' }
+            ],
+
+            supervisions: [
+                {
+                    id: 'SUPV-101',
+                    teacherId: 'TCH-001',
+                    teacherName: 'Siti Nurhaliza, S.Pd',
+                    mapel: 'IPA / Biologi',
+                    school: 'SMA Negeri 1 Digital',
+                    date: '2026-10-10',
+                    supervisorName: 'Drs. H. Ahmad Fauzi, M.Pd',
+                    type: 'PELAKSANAAN', // PELAKSANAAN / TELAAH
+                    totalScore: 108,
+                    maxScore: 120,
+                    finalGrade: 90.0,
+                    category: 'Amat Baik',
+                    status: 'Selesai',
+                    scores: {}, // mapped index: score
+                    notes: {
+                        1: "Apersepsi sangat kontekstual dengan contoh kehidupan nyata di lingkungan sekitar sekolah.",
+                        2: "Pertanyaan pemantik berhasil memicu pembiasaan bernalar kritis."
+                    },
+                    analysisAI: {
+                        strengths: "Penguasaan materi sangat baik, pembukaan dan apersepsi kontekstual, pelibatan siswa aktif.",
+                        improvements: "Pengelolaan alokasi waktu penutup dan pembagian kelompok heterogen perlu diperjelas.",
+                        conclusion: "Pembelajaran mendalan telah terlaksana dengan kriteria Amat Baik.",
+                        recommendation: "Gunakan PhET simulation untuk mendukung pengamatan abstrak pada materi sel.",
+                        followUp: "Pelatihan mandiri pemanfaatan media digital interaktif."
+                    }
+                },
+                {
+                    id: 'SUPV-102',
+                    teacherId: 'TCH-002',
+                    teacherName: 'Budi Santoso, M.Si',
+                    mapel: 'Matematika',
+                    school: 'SMA Negeri 1 Digital',
+                    date: '2026-10-14',
+                    supervisorName: 'Drs. H. Ahmad Fauzi, M.Pd',
+                    type: 'TELAAH',
+                    totalScore: 48,
+                    maxScore: 60,
+                    finalGrade: 80.0,
+                    category: 'Baik',
+                    status: 'Selesai',
+                    scores: {},
+                    qualitative: {
+                        strengths: "Tujuan pembelajaran selaras dengan Dimensi Profil Lulusan.",
+                        improvements: "Langkah pembelajaran merefleksi masih dominan diarahkan guru.",
+                        recommendation: "Berikan ruang metakognisi mandiri bagi siswa."
+                    }
+                }
+            ],
+
+            followUps: [
+                {
+                    id: 'FLW-001',
+                    supervisionId: 'SUPV-101',
+                    teacherId: 'TCH-001',
+                    finding: 'Pemanfaatan media pembelajaran interaktif berbasis PhET masih dapat dioptimalkan.',
+                    indicatorNo: '24',
+                    priority: 'Tinggi',
+                    actionPlan: 'Mengikuti workshop internal pembuatan media visual interaktif dan PhET.',
+                    targetDate: '2026-11-15',
+                    pic: 'Koordinator Kurikulum / Guru',
+                    status: 'DALAM PROSES', // BELUM DILAKSANAKAN, DALAM PROSES, SELESAI
+                    notes: 'Sedang menyiapkan modul PhET mandiri.'
+                }
+            ],
+
+            reflections: [
+                {
+                    id: 'RFL-001',
+                    teacherId: 'TCH-001',
+                    date: '2026-10-12',
+                    good: 'Siswa sangat antusias saat diskusi kelompok dan presentasi analogi sel.',
+                    needsImprovement: 'Pengelolaan waktu saat tanya jawab kelompok agak molor.',
+                    challenges: 'Koneksi internet di laboratorium kadang lambat saat membuka PhET.',
+                    actionPlan: 'Mempersiapkan materi offline/download sebelum masuk kelas.',
+                    supportNeeded: 'Perbaikan titik wifi di Lab IPA.'
+                }
+            ]
+        };
+
+        // Initialize state in localStorage if not exist
+        if (!localStorage.getItem('SUPERVISI_GURU_AI_DB')) {
+            localStorage.setItem('SUPERVISI_GURU_AI_DB', JSON.stringify(INITIAL_DATA));
+        }
+
+        function getDB() {
+            return JSON.parse(localStorage.getItem('SUPERVISI_GURU_AI_DB'));
+        }
+
+        function saveDB(data) {
+            localStorage.setItem('SUPERVISI_GURU_AI_DB', JSON.stringify(data));
+        }
+    </script>
+
+    <script>
+        /* INSTRUMENT 1: SUPERVISI PELAKSANAAN PEMBELAJARAN MENDALAM */
+        const INSTRUMENT_1_DATA = [
+            {
+                section: "A. APERSEPSI DAN MOTIVASI",
+                indicators: [
+                    { id: 1, text: "Mengaitkan materi pembelajaran dengan pengalaman nyata siswa atau pembelajaran sebelumnya untuk membangun konteks bermakna." },
+                    { id: 2, text: "Mengajukan pertanyaan terbuka yang mendorong penalaran kritis dan berkesadaran." },
+                    { id: 3, text: "Menyampaikan manfaat materi pembelajaran dalam kehidupan nyata untuk membangun motivasi intrinsik siswa." },
+                    { id: 4, text: "Mendemonstrasikan atau menampilkan media (misalnya, video, simulasi) yang relevan dengan materi untuk menciptakan pengalaman belajar menggembirakan." }
+                ]
+            },
+            {
+                section: "B. PENYAMPAIAN TUJUAN DAN RENCANA KEGIATAN PEMBELAJARAN",
+                indicators: [
+                    { id: 5, text: "Menyampaikan tujuan pembelajaran yang jelas, realistis, dan terkait dengan dimensi profil lulusan (penalaran kritis)." },
+                    { id: 6, text: "Menjelaskan rencana kegiatan pembelajaran yang mencakup aktivitas individu, kolaborasi kelompok, dan proyek kontekstual." }
+                ]
+            },
+            {
+                section: "C. KEGIATAN INTI - Penguasaan Materi Pelajaran",
+                indicators: [
+                    { id: 7, text: "Menyesuaikan materi dengan tujuan pembelajaran mendalam (memuliakan, berkesadaran, bermakna, menggembirakan)." },
+                    { id: 8, text: "Mengaitkan materi dengan lintas disiplin ilmu, perkembangan IPTEK, dan kehidupan nyata." },
+                    { id: 9, text: "Menyajikan materi secara sistematis (dari konteks nyata ke konsep abstrak) untuk mendukung pemahaman mendalam." }
+                ]
+            },
+            {
+                section: "C. KEGIATAN INTI - Penerapan Strategi Pembelajaran Mendalam",
+                indicators: [
+                    { id: 10, text: "Melaksanakan pembelajaran yang mendukung pengembangan penalaran kritis melalui aktivitas memahami, mengaplikasi, dan merefleksi." },
+                    { id: 11, text: "Memfasilitasi kegiatan inkuiri yang mencakup tahapan memahami (konstruksi pengetahuan), mengaplikasi (penerapan konteks nyata), dan merefleksi (evaluasi diri)." },
+                    { id: 12, text: "Melaksanakan pembelajaran secara runtut dan terintegrasi dengan pendekatan holistik (olah pikir, olah hati, olah rasa, olah raga)." },
+                    { id: 13, text: "Mengelola kelas untuk menciptakan budaya belajar kolaboratif, kritis, dan inklusif." },
+                    { id: 14, text: "Melaksanakan pembelajaran yang kontekstual, relevan dengan kehidupan siswa." },
+                    { id: 15, text: "Mendorong kebiasaan positif (nurturant effect) seperti kerja sama, empati, dan regulasi diri melalui aktivitas pembelajaran." },
+                    { id: 16, text: "Mengelola waktu pembelajaran sesuai alokasi untuk memastikan ketercapaian tujuan pembelajaran." }
+                ]
+            },
+            {
+                section: "C. KEGIATAN INTI - Penerapan Pendekatan Pembelajaran Mendalam",
+                indicators: [
+                    { id: 17, text: "Memfasilitasi siswa untuk mengamati fenomena nyata atau simulasi terkait materi." },
+                    { id: 18, text: "Mendorong siswa untuk menanya secara kritis dan berkesadaran tentang materi." },
+                    { id: 19, text: "Memfasilitasi siswa untuk mencoba eksperimen atau aktivitas kontekstual." },
+                    { id: 20, text: "Memfasilitasi siswa untuk menganalisis dan menalar secara logis." },
+                    { id: 21, text: "Memberikan kesempatan siswa untuk mengomunikasikan hasil analisis melalui presentasi, diskusi, atau karya proyek." }
+                ]
+            },
+            {
+                section: "C. KEGIATAN INTI - Pemanfaatan Sumber Belajar/Media dalam Pembelajaran",
+                indicators: [
+                    { id: 22, text: "Menggunakan sumber belajar (buku teks, artikel daring, simulasi) yang relevan dengan tujuan pembelajaran mendalam." },
+                    { id: 23, text: "Menggunakan media pembelajaran (misalnya, PhET Simulations, BioMan) yang memudahkan pemahaman konsep." },
+                    { id: 24, text: "Menghasilkan pesan pembelajaran yang menarik dan menggembirakan melalui media visual atau interaktif." },
+                    { id: 25, text: "Melibatkan siswa dalam pemanfaatan sumber belajar." },
+                    { id: 26, text: "Mengelola penggunaan ponsel siswa untuk keperluan pembelajaran dengan aturan yang jelas." }
+                ]
+            },
+            {
+                section: "D. PELIBATAN PESERTA DIDIK DALAM PEMBELAJARAN",
+                indicators: [
+                    { id: 27, text: "Menumbuhkan partisipasi aktif siswa melalui interaksi guru-siswa, siswa-siswa, dan siswa-sumber belajar." },
+                    { id: 28, text: "Merespons positif partisipasi siswa untuk membangun suasana belajar yang memuliakan." },
+                    { id: 29, text: "Menunjukkan sikap terbuka terhadap pertanyaan atau tanggapan siswa untuk mendorong penalaran kritis." },
+                    { id: 30, text: "Menciptakan hubungan antarpribadi yang kondusif, inklusif, dan mendukung kerja sama." },
+                    { id: 31, text: "Menumbuhkan antusiasme dan keceriaan siswa melalui aktivitas pembelajaran yang bermakna dan menggembirakan." }
+                ]
+            },
+            {
+                section: "E. PELAKSANAAN PENILAIAN AUTENTIK",
+                indicators: [
+                    { id: 32, text: "Menilai sikap siswa dalam pembelajaran (misalnya, kolaborasi, regulasi diri) melalui observasi atau jurnal." },
+                    { id: 33, text: "Menilai pengetahuan siswa melalui kuis, peta konsep, atau analisis kasus kontekstual." },
+                    { id: 34, text: "Menilai keterampilan siswa melalui tugas proyek, presentasi, atau eksperimen sederhana." }
+                ]
+            },
+            {
+                section: "F. PENGGUNAAN BAHASA YANG BENAR DAN TEPAT",
+                indicators: [
+                    { id: 35, text: "Menggunakan bahasa lisan yang jelas, lancar, dan sesuai dengan konteks pembelajaran." },
+                    { id: 36, text: "Menggunakan bahasa tulis yang baik dan benar pada media presentasi atau lembar kerja." }
+                ]
+            },
+            {
+                section: "G. PENUTUP PEMBELAJARAN",
+                indicators: [
+                    { id: 37, text: "Melakukan refleksi bersama siswa untuk mengevaluasi pembelajaran dan mendorong metakognisi." },
+                    { id: 38, text: "Mengumpulkan hasil kerja siswa (misalnya, diagram, jurnal, proyek) sebagai portofolio." },
+                    { id: 39, text: "Memberikan arahan untuk kegiatan tindak lanjut, seperti tugas pengayaan, remedial, atau proyek lanjutan." },
+                    { id: 40, text: "Memberikan Assessment sesuai dengan Tujuan pembelajaran." }
+                ]
+            }
+        ];
+
+        /* INSTRUMENT 2: TELAAH PERENCANAAN PEMBELAJARAN MENDALAM */
+        const INSTRUMENT_2_DATA = [
+            {
+                section: "I. KESELARASAN",
+                indicators: [
+                    { id: 1, text: "Tujuan pembelajaran, langkah pembelajaran, dan asesmen pembelajaran sudah mengarah pada pencapaian Dimensi Profil Lulusan." },
+                    { id: 2, text: "Tujuan pembelajaran, langkah pembelajaran, dan asesmen pembelajaran sudah selaras." }
+                ]
+            },
+            {
+                section: "II. KERANGKA PEMBELAJARAN",
+                indicators: [
+                    { id: 3, text: "Praktik pedagogis yang dituliskan sudah tergambar pada langkah pembelajaran dan/atau asesmen pembelajaran." },
+                    { id: 4, text: "Lingkungan belajar yang dituliskan sudah tergambar pada langkah pembelajaran dan/atau asesmen pembelajaran." },
+                    { id: 5, text: "Kemitraan pembelajaran yang dituliskan sudah tergambar pada langkah pembelajaran dan/atau asesmen pembelajaran." },
+                    { id: 6, text: "Pemanfaatan digital yang dituliskan sudah tergambar pada langkah pembelajaran dan/atau asesmen pembelajaran." }
+                ]
+            },
+            {
+                section: "III. LANGKAH PEMBELAJARAN",
+                indicators: [
+                    { 
+                        id: 7, 
+                        text: "Langkah pembelajaran dapat memfasilitasi murid untuk merasakan pengalaman belajar MEMAHAMAP (terlibat aktif mengonstruksi pengetahuan).",
+                        subindicators: [
+                            "a. Menghubungkan pengetahuan baru dengan pengetahuan sebelumnya.",
+                            "b. Menstimulasi proses berpikir murid.",
+                            "c. Menghubungkan dengan konteks nyata dan/atau kehidupan sehari-hari.",
+                            "d. Memberikan kebebasan eksploratif dan kolaboratif.",
+                            "e. Menanamkan nilai-nilai moral dan etika dan nilai positif lainnya.",
+                            "f. Mengaitkan pembelajaran dengan pembentukan karakter murid."
+                        ]
+                    },
+                    { 
+                        id: 8, 
+                        text: "Langkah pembelajaran dapat memfasilitasi murid untuk merasakan pengalaman belajar MENGAPLIKASI (penerapan kontekstual).",
+                        subindicators: [
+                            "a. Menghubungkan konsep baru dengan pengetahuan sebelumnya.",
+                            "b. Menerapkan pengetahuan ke dalam situasi nyata atau bidang lain.",
+                            "c. Mengembangkan pemahaman dengan eksplorasi lebih lanjut.",
+                            "d. Berpikir kritis dan mencari solusi inovatif berdasarkan pengetahuan yang ada."
+                        ]
+                    },
+                    { 
+                        id: 9, 
+                        text: "Langkah pembelajaran dapat memfasilitasi murid untuk merasakan pengalaman belajar MEREFLEKSI (evaluasi & metakognisi).",
+                        subindicators: [
+                            "a. Memotivasi diri sendiri untuk terus belajar bagaimana cara belajar.",
+                            "b. Refleksi terhadap pencapaian tujuan pembelajaran (evaluasi diri).",
+                            "c. Menerapkan strategi berpikir.",
+                            "d. Memiliki kemampuan metakognisi (meregulasi diri dalam pembelajaran).",
+                            "e. Meregulasi emosi dalam pembelajaran."
+                        ]
+                    },
+                    { id: 10, text: "Langkah perencanaan pembelajaran dapat memfasilitasi tindakan saling MEMULIAKAN antara Guru-Murid, Murid-Guru, Murid-Murid." },
+                    { id: 11, text: "Prinsip pembelajaran mendalam berupa berkesadaran, bermakna, dan/atau menggembirakan sudah tergambar pada setiap pengalaman belajar." },
+                    { id: 12, text: "Perencanaan pembelajaran sudah mengakomodir pengalaman belajar yang sesuai dengan karakteristik peserta didik." }
+                ]
+            },
+            {
+                section: "IV. ASESMEN",
+                indicators: [
+                    { id: 13, text: "Asesmen pada awal pembelajaran telah dilaksanakan untuk mendapatkan bukti kesiapan belajar secara emosional, mental, pengetahuan awal, dan kebutuhan belajar murid." },
+                    { id: 14, text: "Asesmen selama proses pembelajaran telah dilaksanakan sesuai perencanaan untuk memantau perkembangan belajar murid dan umpan balik kontinyu." },
+                    { id: 15, text: "Asesmen hasil pembelajaran direncanakan untuk mengukur pencapaian kompetensi sebagai bukti keberhasilan pembelajaran dengan beragam cara (tes, portofolio, proyek, presentasi)." }
+                ]
+            }
+        ];
+    </script>
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <button id="btn-toggle-sidebar" class="lg:hidden text-slate-300 hover:text-white p-1">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <div class="bg-brand-500 text-white p-2 rounded-lg font-bold flex items-center justify-center">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-base sm:text-lg tracking-wide block leading-none">SUPERVISI GURU AI</span>
+                        <span class="text-[10px] text-brand-300 tracking-wider uppercase font-semibold">created :miss osty</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Switcher & User Profile -->
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center bg-slate-800 rounded-lg p-1 text-xs border border-slate-700">
+                    <span class="text-slate-400 px-2 font-medium">Role:</span>
+                    <button onclick="switchRole('ADMIN')" id="role-btn-ADMIN" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition">Admin</button>
+                    <button onclick="switchRole('SUPERVISOR')" id="role-btn-SUPERVISOR" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition">Supervisor</button>
+                    <button onclick="switchRole('GURU')" id="role-btn-GURU" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition">Guru</button>
+                </div>
+
+                <div class="flex items-center space-x-3 border-l border-slate-700 pl-4">
+                    <img id="header-user-photo" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150" class="w-8 h-8 rounded-full border border-slate-600 object-cover" alt="Avatar">
+                    <div class="hidden sm:block text-left">
+                        <div id="header-user-name" class="text-xs font-semibold text-slate-100">Drs. H. Ahmad Fauzi</div>
+                        <div id="header-user-role" class="text-[10px] text-brand-400 font-medium">SUPERVISOR</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex-shrink-0 hidden lg:flex flex-col justify-between overflow-y-auto custom-scrollbar transition-all duration-200">
+            <div class="p-4 space-y-1">
+                <div class="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Menu Utama</div>
+                
+                <a href="#" onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="#" onclick="navigateTo('teachers')" id="nav-teachers" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Data Guru</span>
+                </a>
+
+                <div class="pt-2 pb-1 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Supervisi & Telaah</div>
+
+                <a href="#" onclick="startNewSupervision('PELAKSANAAN')" id="nav-new-obs" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="file-check" class="w-4 h-4"></i>
+                    <span>Supervisi Pelaksanaan</span>
+                </a>
+
+                <a href="#" onclick="startNewSupervision('TELAAH')" id="nav-new-review" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="file-search" class="w-4 h-4"></i>
+                    <span>Telaah Perencanaan</span>
+                </a>
+
+                <a href="#" onclick="navigateTo('fast-supervision')" id="nav-fast" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
+                    <span class="text-amber-700 font-semibold">Supervisi Cepat</span>
+                </a>
+
+                <a href="#" onclick="navigateTo('history')" id="nav-history" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                    <span>Riwayat & Laporan</span>
+                </a>
+
+                <a href="#" onclick="navigateTo('followup')" id="nav-followup" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                    <span>Tindak Lanjut</span>
+                </a>
+
+                <a href="#" onclick="navigateTo('reflection')" id="nav-reflection" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+                    <span>Refleksi Guru</span>
+                </a>
+
+                <div class="pt-2 pb-1 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Fitur AI</div>
+
+                <a href="#" onclick="navigateTo('ai-assistant')" id="nav-ai-assistant" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium text-sm transition">
+                    <i data-lucide="bot" class="w-4 h-4 text-brand-600"></i>
+                    <span>AI Asisten Supervisi</span>
+                </a>
+            </div>
+
+            <div class="p-4 border-t border-slate-200 bg-slate-50">
+                <div class="text-[11px] text-slate-500 leading-tight">
+                    <p class="font-semibold text-slate-700">Digital Supervisi v2.5</p>
+                    <p class="mt-0.5">Tindak Lanjut Pembelajaran Mendalam</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8 custom-scrollbar">
+            
+            <!-- Dynamic Content Containers -->
+            <div id="content-area" class="max-w-7xl mx-auto space-y-6">
+                <!-- Content injected via JS -->
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        let currentRole = 'SUPERVISOR';
+        let currentView = 'dashboard';
+
+        function updateRoleButtons() {
+            ['ADMIN', 'SUPERVISOR', 'GURU'].forEach(role => {
+                const btn = document.getElementById(`role-btn-${role}`);
+                if (btn) {
+                    if (role === currentRole) {
+                        btn.className = "px-2.5 py-1 rounded-md text-white bg-brand-600 font-semibold shadow-sm";
+                    } else {
+                        btn.className = "px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition";
+                    }
+                }
+            });
+
+            // Update user profile header
+            const db = getDB();
+            let matchedUser = db.users.find(u => u.role === currentRole) || db.users[0];
+            document.getElementById('header-user-name').textContent = matchedUser.name;
+            document.getElementById('header-user-role').textContent = matchedUser.role;
+            if(matchedUser.photo) {
+                document.getElementById('header-user-photo').src = matchedUser.photo;
+            }
+        }
+
+        function switchRole(role) {
+            currentRole = role;
+            updateRoleButtons();
+            navigateTo('dashboard');
+        }
+
+        function navigateTo(viewName, params = {}) {
+            currentView = viewName;
+            
+            // Highlight nav
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-brand-50', 'text-brand-700', 'font-semibold');
+            });
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-brand-50', 'text-brand-700', 'font-semibold');
+            }
+
+            const container = document.getElementById('content-area');
+            
+            switch (viewName) {
+                case 'dashboard':
+                    renderDashboard(container);
+                    break;
+                case 'teachers':
+                    renderTeachersList(container);
+                    break;
+                case 'teacher-detail':
+                    renderTeacherDetail(container, params.teacherId);
+                    break;
+                case 'supervision-form':
+                    renderSupervisionForm(container, params.type, params.teacherId);
+                    break;
+                case 'fast-supervision':
+                    renderFastSupervision(container);
+                    break;
+                case 'history':
+                    renderSupervisionHistory(container);
+                    break;
+                case 'supervision-result':
+                    renderSupervisionResult(container, params.supervisionId);
+                    break;
+                case 'followup':
+                    renderFollowUpPage(container);
+                    break;
+                case 'reflection':
+                    renderReflectionPage(container);
+                    break;
+                case 'ai-assistant':
+                    renderAIAssistant(container);
+                    break;
+                default:
+                    renderDashboard(container);
+            }
+            
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+
+    <script>
+        function renderDashboard(container) {
+            const db = getDB();
+            const totalTeachers = db.users.filter(u => u.role === 'GURU').length;
+            const totalSupervisions = db.supervisions.length;
+            
+            // Supervisions this month
+            const now = new Date();
+            const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const monthlySupervisions = db.supervisions.filter(s => s.date.startsWith(thisMonthStr)).length;
+
+            // Average score
+            const avgGrade = totalSupervisions > 0 
+                ? (db.supervisions.reduce((acc, s) => acc + s.finalGrade, 0) / totalSupervisions).toFixed(1)
+                : 0;
+
+            const supervisedTeacherIds = new Set(db.supervisions.map(s => s.teacherId));
+            const supervisedCount = supervisedTeacherIds.size;
+            const unsupervisedCount = totalTeachers - supervisedCount;
+
+            const pendingFollowUps = db.followUps.filter(f => f.status !== 'SELESAI').length;
+
+            container.innerHTML = `
+                <!-- Dashboard Header Tagline -->
+                <div class="bg-gradient-to-r from-brand-700 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold text-brand-200 mb-2">
+                            Digital Supervisi Guru AI
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-bold">Selamat Datang di Portal Supervisi</h1>
+                        <p class="text-brand-100 text-sm mt-1">"Supervisi Lebih Cepat, Data Lebih Rapi, Tindak Lanjut Lebih Terarah."</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="startNewSupervision('PELAKSANAAN')" class="bg-white text-brand-700 hover:bg-brand-50 px-4 py-2.5 rounded-xl font-semibold text-sm shadow transition flex items-center space-x-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>Supervisi Pelaksanaan</span>
+                        </button>
+                        <button onclick="startNewSupervision('TELAAH')" class="bg-brand-600 text-white hover:bg-brand-500 px-4 py-2.5 rounded-xl font-semibold text-sm shadow transition flex items-center space-x-2">
+                            <i data-lucide="file-search" class="w-4 h-4"></i>
+                            <span>Telaah Perencanaan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Key Metrics Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 font-medium">Total Guru</div>
+                            <div class="text-2xl font-bold text-slate-800">${totalTeachers}</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i data-lucide="file-check-2" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 font-medium">Total Supervisi</div>
+                            <div class="text-2xl font-bold text-slate-800">${totalSupervisions}</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 font-medium">Rata-rata Nilai</div>
+                            <div class="text-2xl font-bold text-slate-800">${avgGrade}</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                            <i data-lucide="alert-circle" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 font-medium">Tindak Lanjut Pending</div>
+                            <div class="text-2xl font-bold text-slate-800">${pendingFollowUps}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-500 block">Guru Sudah Disupervisi</span>
+                            <span class="text-lg font-bold text-emerald-600">${supervisedCount} Guru</span>
+                        </div>
+                        <i data-lucide="user-check" class="w-6 h-6 text-emerald-500"></i>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-500 block">Guru Belum Disupervisi</span>
+                            <span class="text-lg font-bold text-amber-600">${unsupervisedCount} Guru</span>
+                        </div>
+                        <i data-lucide="user-minus" class="w-6 h-6 text-amber-500"></i>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-500 block">Supervisi Bulan Ini</span>
+                            <span class="text-lg font-bold text-brand-600">${monthlySupervisions} Kegiatan</span>
+                        </div>
+                        <i data-lucide="calendar" class="w-6 h-6 text-brand-500"></i>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-brand-600"></i>
+                            <span>Perkembangan Nilai Supervisi</span>
+                        </h3>
+                        <div class="h-64">
+                            <canvas id="chart-trend"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-brand-600"></i>
+                            <span>Distribusi Kategori Nilai</span>
+                        </h3>
+                        <div class="h-64">
+                            <canvas id="chart-distribution"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Supervisions Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                            <i data-lucide="clock" class="w-4 h-4 text-brand-600"></i>
+                            <span>Supervisi Terbaru</span>
+                        </h3>
+                        <button onclick="navigateTo('history')" class="text-xs text-brand-600 font-semibold hover:underline">Lihat Semua</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Nama Guru</th>
+                                    <th class="p-3">Jenis</th>
+                                    <th class="p-3">Nilai</th>
+                                    <th class="p-3">Kategori</th>
+                                    <th class="p-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${db.supervisions.slice(0, 5).map(s => `
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="p-3 font-medium text-slate-800">${s.date}</td>
+                                        <td class="p-3">${s.teacherName}</td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold ${s.type === 'PELAKSANAAN' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}">
+                                                ${s.type === 'PELAKSANAAN' ? 'Observasi Pelaksanaan' : 'Telaah Modul'}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 font-bold text-slate-800">${s.finalGrade}</td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${s.category === 'Amat Baik' ? 'bg-emerald-100 text-emerald-800' : s.category === 'Baik' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}">
+                                                ${s.category}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <button onclick="navigateTo('supervision-result', {supervisionId: '${s.id}'})" class="text-brand-600 hover:text-brand-800 font-semibold text-xs">
+                                                Detail
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                                ${db.supervisions.length === 0 ? '<tr><td colspan="6" class="text-center p-4 text-slate-400">Belum ada data supervisi.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            // Initialize Charts
+            setTimeout(() => {
+                initDashboardCharts(db);
+            }, 100);
+        }
+
+        function initDashboardCharts(db) {
+            // Trend Chart
+            const ctxTrend = document.getElementById('chart-trend')?.getContext('2d');
+            if (ctxTrend) {
+                new Chart(ctxTrend, {
+                    type: 'line',
+                    data: {
+                        labels: db.supervisions.map(s => s.date),
+                        datasets: [{
+                            label: 'Nilai Akhir',
+                            data: db.supervisions.map(s => s.finalGrade),
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { min: 0, max: 100 } }
+                    }
+                });
+            }
+
+            // Distribution Chart
+            const ctxDist = document.getElementById('chart-distribution')?.getContext('2d');
+            if (ctxDist) {
+                const categories = { 'Amat Baik': 0, 'Baik': 0, 'Kurang': 0 };
+                db.supervisions.forEach(s => {
+                    if (categories[s.category] !== undefined) categories[s.category]++;
+                });
+
+                new Chart(ctxDist, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Amat Baik (86-100)', 'Baik (70-85)', 'Kurang (<70)'],
+                        datasets: [{
+                            data: [categories['Amat Baik'], categories['Baik'], categories['Kurang']],
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        }
+    </script>
+
+    <script>
+        function renderTeachersList(container) {
+            const db = getDB();
+            const teachers = db.users.filter(u => u.role === 'GURU');
+
+            container.innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800">Database Data Guru</h1>
+                        <p class="text-slate-500 text-xs">Kelola data pendidik, riwayat supervisi, dan analisis tindak lanjut.</p>
+                    </div>
+                    ${currentRole !== 'GURU' ? `
+                        <button onclick="showAddTeacherModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow flex items-center space-x-2 self-start">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>Tambah Guru Baru</span>
+                        </button>
+                    ` : ''}
+                </div>
+
+                <!-- Search and Filter Controls -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row gap-3">
+                    <div class="flex-1 relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                        <input type="text" id="teacher-search-input" onkeyup="filterTeachersTable()" placeholder="Cari nama guru, NIP, atau mata pelajaran..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Teacher Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="teacher-cards-container">
+                    ${teachers.map(teacher => renderTeacherCard(teacher, db)).join('')}
+                </div>
+            `;
+        }
+
+        function renderTeacherCard(teacher, db) {
+            const teacherSupervisions = db.supervisions.filter(s => s.teacherId === teacher.id);
+            const latestSupv = teacherSupervisions[teacherSupervisions.length - 1];
+
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start space-x-4">
+                            <img src="${teacher.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}" class="w-14 h-14 rounded-full object-cover border-2 border-brand-100" alt="Foto">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-base font-bold text-slate-800 truncate">${teacher.name}</h3>
+                                <p class="text-xs text-slate-500">NIP: ${teacher.nip || '-'}</p>
+                                <span class="inline-block mt-1 px-2.5 py-0.5 bg-brand-50 text-brand-700 text-xs font-semibold rounded-full">
+                                    ${teacher.mapel}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Unit Kerja:</span>
+                                <span class="font-medium">${teacher.unit}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Jenjang/Kelas:</span>
+                                <span class="font-medium">${teacher.jenjang} / ${teacher.kelas}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Supervisi Terakhir:</span>
+                                <span class="font-medium text-slate-800">${latestSupv ? latestSupv.date : 'Belum Pernah'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Nilai Terakhir</span>
+                            <span class="text-lg font-extrabold text-brand-600">${latestSupv ? latestSupv.finalGrade : '-'}</span>
+                        </div>
+                        <button onclick="navigateTo('teacher-detail', {teacherId: '${teacher.id}'})" class="bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                            Lihat Profil Guru
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* Teacher Profile View with Tabs */
+        function renderTeacherDetail(container, teacherId) {
+            const db = getDB();
+            const teacher = db.users.find(u => u.id === teacherId) || db.users.find(u => u.role === 'GURU');
+            const teacherSupervisions = db.supervisions.filter(s => s.teacherId === teacher.id);
+            const teacherFollowUps = db.followUps.filter(f => f.teacherId === teacher.id);
+            const teacherReflections = db.reflections.filter(r => r.teacherId === teacher.id);
+
+            container.innerHTML = `
+                <!-- Teacher Header Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row items-center gap-6">
+                    <img src="${teacher.photo}" class="w-24 h-24 rounded-full object-cover border-4 border-brand-50" alt="Teacher">
+                    <div class="flex-1 text-center md:text-left space-y-1">
+                        <h1 class="text-2xl font-bold text-slate-800">${teacher.name}</h1>
+                        <p class="text-xs text-slate-500">NIP/NUPTK: ${teacher.nip} | Mata Pelajaran: <span class="font-semibold text-brand-600">${teacher.mapel}</span></p>
+                        <div class="flex flex-wrap justify-center md:justify-start gap-2 pt-2 text-xs">
+                            <span class="bg-slate-100 px-3 py-1 rounded-md text-slate-600">Unit: ${teacher.unit}</span>
+                            <span class="bg-slate-100 px-3 py-1 rounded-md text-slate-600">Jenjang: ${teacher.jenjang} (${teacher.kelas})</span>
+                            <span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-md font-medium">Status: ${teacher.status}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="startNewSupervisionForTeacher('${teacher.id}')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow transition">
+                            + Buat Supervisi Guru Ini
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs Header -->
+                <div class="border-b border-slate-200 bg-white rounded-xl p-1 flex space-x-2 overflow-x-auto text-xs font-medium">
+                    <button onclick="switchTeacherTab('tab-supervisi')" class="teacher-tab-btn active-tab px-4 py-2 rounded-lg text-brand-700 bg-brand-50 font-bold" id="btn-tab-supervisi">Supervisi (${teacherSupervisions.length})</button>
+                    <button onclick="switchTeacherTab('tab-rekomendasi')" class="teacher-tab-btn px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100" id="btn-tab-rekomendasi">Rekomendasi</button>
+                    <button onclick="switchTeacherTab('tab-tindaklanjut')" class="teacher-tab-btn px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100" id="btn-tab-tindaklanjut">Tindak Lanjut (${teacherFollowUps.length})</button>
+                    <button onclick="switchTeacherTab('tab-refleksi')" class="teacher-tab-btn px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100" id="btn-tab-refleksi">Refleksi (${teacherReflections.length})</button>
+                </div>
+
+                <!-- Tab Contents -->
+                <div id="teacher-tab-content" class="space-y-4">
+                    <!-- Default loaded tab content -->
+                </div>
+            `;
+
+            // Default render Supervisi Tab
+            renderTeacherSupervisionsTab(teacherSupervisions);
+        }
+
+        function switchTeacherTab(tabName) {
+            document.querySelectorAll('.teacher-tab-btn').forEach(btn => {
+                btn.className = "teacher-tab-btn px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100";
+            });
+            const activeBtn = document.getElementById(`btn-${tabName}`);
+            if(activeBtn) activeBtn.className = "teacher-tab-btn active-tab px-4 py-2 rounded-lg text-brand-700 bg-brand-50 font-bold";
+
+            const container = document.getElementById('teacher-tab-content');
+            const db = getDB();
+
+            if(tabName === 'tab-supervisi') {
+                renderTeacherSupervisionsTab(db.supervisions);
+            } else if(tabName === 'tab-rekomendasi') {
+                container.innerHTML = `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+                        <h3 class="font-bold text-slate-800 text-sm">Rekomendasi AI & Supervisor</h3>
+                        <p class="text-xs text-slate-500">Rekomendasi terarah berbasis indikator supervisi pembelajaran mendalam.</p>
+                        <div class="space-y-3 pt-2">
+                            ${db.supervisions.map(s => `
+                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div class="text-xs font-semibold text-brand-700">Supervisi Tgl ${s.date}</div>
+                                    <p class="text-xs text-slate-700 mt-1">${s.analysisAI?.recommendation || 'Belum ada rekomendasi khusus.'}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if(tabName === 'tab-tindaklanjut') {
+                container.innerHTML = `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm">Rencana Tindak Lanjut Guru</h3>
+                        <div class="space-y-3">
+                            ${db.followUps.map(f => `
+                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-start">
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-800">${f.finding}</div>
+                                        <div class="text-xs text-slate-500 mt-1">Rencana: ${f.actionPlan}</div>
+                                        <div class="text-[11px] text-slate-400 mt-1">Target: ${f.targetDate} | PIC: ${f.pic}</div>
+                                    </div>
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${f.status === 'SELESAI' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                        ${f.status}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if(tabName === 'tab-refleksi') {
+                container.innerHTML = `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm">Catatan Refleksi Mandiri Guru</h3>
+                        ${db.reflections.map(r => `
+                            <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-2 text-xs">
+                                <div class="font-bold text-brand-800">Refleksi Tanggal: ${r.date}</div>
+                                <p><strong>Berjalan Baik:</strong> ${r.good}</p>
+                                <p><strong>Perlu Diperbaiki:</strong> ${r.needsImprovement}</p>
+                                <p><strong>Dukungan Dibutuhkan:</strong> ${r.supportNeeded}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function renderTeacherSupervisionsTab(supervisions) {
+            const container = document.getElementById('teacher-tab-content');
+            container.innerHTML = `
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3">Riwayat Supervisi Guru</h3>
+                    <div class="space-y-3">
+                        ${supervisions.map(s => `
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-bold text-sm text-slate-800">${s.date}</span>
+                                        <span class="px-2 py-0.5 bg-brand-100 text-brand-800 text-[10px] font-bold rounded">${s.type}</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-1">Supervisor: ${s.supervisorName}</div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold text-brand-700">${s.finalGrade}</div>
+                                        <div class="text-[10px] font-semibold text-slate-500">${s.category}</div>
+                                    </div>
+                                    <button onclick="navigateTo('supervision-result', {supervisionId: '${s.id}'})" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
+                                        Lihat Hasil
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function startNewSupervisionForTeacher(teacherId) {
+            navigateTo('supervision-form', { type: 'PELAKSANAAN', teacherId: teacherId });
+        }
+    </script>
+
+    <script>
+        let currentFormState = {
+            teacherId: '',
+            type: 'PELAKSANAAN',
+            scores: {},
+            notes: {},
+            qualitative: {
+                strengths: '',
+                improvements: '',
+                recommendations: '',
+                evaluator: ''
+            },
+            aiAnalysis: {}
+        };
+
+        function startNewSupervision(type) {
+            const db = getDB();
+            const firstTeacher = db.users.find(u => u.role === 'GURU');
+            navigateTo('supervision-form', { type: type, teacherId: firstTeacher ? firstTeacher.id : '' });
+        }
+
+        function renderSupervisionForm(container, type, teacherId) {
+            const db = getDB();
+            const teachers = db.users.filter(u => u.role === 'GURU');
+            const selectedTeacher = teachers.find(t => t.id === teacherId) || teachers[0];
+
+            currentFormState.teacherId = selectedTeacher ? selectedTeacher.id : '';
+            currentFormState.type = type;
+            currentFormState.scores = {};
+            currentFormState.notes = {};
+
+            container.innerHTML = `
+                <!-- Form Navigation Header -->
+                <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <span class="text-xs font-bold text-brand-600 uppercase tracking-wider block">Formulir Supervisi Baru</span>
+                        <h1 class="text-lg font-bold text-slate-800">
+                            ${type === 'PELAKSANAAN' ? '[1] SUPERVISI PELAKSANAAN PEMBELAJARAN MENDALAM' : '[2] TELAAH PERENCANAAN PEMBELAJARAN MENDALAM'}
+                        </h1>
+                    </div>
+                    <button onclick="navigateTo('dashboard')" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x-circle" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- Teacher Selector & Identity Info -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Identitas Supervisi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Pilih Guru</label>
+                            <select id="form-teacher-select" onchange="onFormTeacherChange(this.value, '${type}')" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500">
+                                ${teachers.map(t => `<option value="${t.id}" ${t.id === selectedTeacher?.id ? 'selected' : ''}>${t.name} - ${t.mapel}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Mata Pelajaran</label>
+                            <input type="text" readonly value="${selectedTeacher?.mapel || ''}" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Nama Sekolah</label>
+                            <input type="text" readonly value="${selectedTeacher?.unit || ''}" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Tanggal Supervisi</label>
+                            <input type="date" id="form-date" value="${new Date().toISOString().split('T')[0]}" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Petugas Supervisi</label>
+                            <input type="text" id="form-supervisor" value="${db.users.find(u => u.role === 'SUPERVISOR')?.name || 'Supervisor'}" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Upload & AI Document Analyzer Section -->
+                <div class="bg-gradient-to-r from-slate-900 to-brand-900 text-white p-5 rounded-2xl shadow-md space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-brand-500/20 text-brand-300 rounded-lg">
+                                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold">AI Document Analyzer (RPP / Modul Ajar)</h3>
+                                <p class="text-xs text-slate-300">Upload Modul Ajar (PDF/DOCX) untuk ektraksi otomatis bukti & rekomendasi skor AI.</p>
+                            </div>
+                        </div>
+                        <label class="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow transition flex items-center space-x-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            <span>UPLOAD RPP / MODUL AJAR</span>
+                            <input type="file" accept=".pdf,.docx,.doc" onchange="handleDocumentUpload(event)" class="hidden">
+                        </label>
+                    </div>
+                    <div id="ai-document-status" class="hidden p-3 bg-white/10 rounded-xl text-xs text-brand-200 flex items-center justify-between">
+                        <span id="ai-status-text">Memproses dokumen...</span>
+                        <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
+                    </div>
+                </div>
+
+                <!-- Real-time Progress Bar -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-16 z-20">
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-700 mb-1">
+                        <span>PROGRESS SUPERVISI</span>
+                        <span id="progress-text">0 dari ${type === 'PELAKSANAAN' ? 40 : 15} Indikator Selesai (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                        <div id="progress-bar-fill" class="bg-brand-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Assessment Instrument Checklist Container -->
+                <div class="space-y-6">
+                    ${type === 'PELAKSANAAN' ? renderInstrument1Checklist() : renderInstrument2Checklist()}
+                </div>
+
+                <!-- Form Submit and Validation Action Footer -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-md flex justify-between items-center sticky bottom-4">
+                    <button onclick="navigateTo('dashboard')" class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                        Batal
+                    </button>
+                    <button onclick="submitSupervisionForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center space-x-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                        <span>Simpan & Selesaikan Supervisi</span>
+                    </button>
+                </div>
+            `;
+
+            lucide.createIcons();
+        }
+
+        function onFormTeacherChange(teacherId, type) {
+            renderSupervisionForm(document.getElementById('content-area'), type, teacherId);
+        }
+
+        /* Render Instrument 1 Checklist (40 Indicators) */
+        function renderInstrument1Checklist() {
+            return INSTRUMENT_1_DATA.map(group => `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <h3 class="text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50 p-2.5 rounded-lg border border-brand-100">
+                        ${group.section}
+                    </h3>
+                    <div class="space-y-4 divide-y divide-slate-100">
+                        ${group.indicators.map(ind => `
+                            <div class="pt-3 space-y-2">
+                                <div class="flex items-start justify-between gap-4">
+                                    <span class="text-xs font-medium text-slate-800 flex-1">
+                                        <strong class="text-brand-600 font-bold">${ind.id}.</strong> ${ind.text}
+                                    </span>
+                                </div>
+
+                                <!-- AI Card Placement (Injected dynamically if analyzed) -->
+                                <div id="ai-card-inst1-${ind.id}" class="hidden"></div>
+
+                                <!-- Radio Scale Options -->
+                                <div class="flex flex-wrap items-center gap-4 pt-1">
+                                    <label class="flex items-center space-x-2 cursor-pointer bg-slate-50 hover:bg-emerald-50 p-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 transition">
+                                        <input type="radio" name="ind1_${ind.id}" value="1" onchange="updateScore1(${ind.id}, 1)" class="text-brand-600 focus:ring-brand-500">
+                                        <span>Sesuai (1)</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer bg-slate-50 hover:bg-amber-50 p-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 transition">
+                                        <input type="radio" name="ind1_${ind.id}" value="2" onchange="updateScore1(${ind.id}, 2)" class="text-brand-600 focus:ring-brand-500">
+                                        <span>Sesuai Sebagian (2)</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer bg-slate-50 hover:bg-blue-50 p-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 transition">
+                                        <input type="radio" name="ind1_${ind.id}" value="3" onchange="updateScore1(${ind.id}, 3)" class="text-brand-600 focus:ring-brand-500">
+                                        <span>Sesuai Catatan (3)</span>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <input type="text" placeholder="Catatan Supervisor..." onchange="updateNote1(${ind.id}, this.value)" class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-brand-500">
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* Render Instrument 2 Checklist (15 Indicators + Subindicators) */
+        function renderInstrument2Checklist() {
+            return INSTRUMENT_2_DATA.map(group => `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <h3 class="text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50 p-2.5 rounded-lg border border-brand-100">
+                        ${group.section}
+                    </h3>
+                    <div class="space-y-4 divide-y divide-slate-100">
+                        ${group.indicators.map(ind => `
+                            <div class="pt-3 space-y-2">
+                                <div class="text-xs font-medium text-slate-800">
+                                    <strong class="text-brand-600 font-bold">${ind.id}.</strong> ${ind.text}
+                                </div>
+
+                                ${ind.subindicators ? `
+                                    <div class="pl-4 py-2 bg-slate-50 rounded-lg text-[11px] text-slate-600 space-y-1 border border-slate-100">
+                                        <div class="font-bold text-slate-500">Subindikator:</div>
+                                        ${ind.subindicators.map(sub => `<div>${sub}</div>`).join('')}
+                                    </div>
+                                ` : ''}
+
+                                <!-- AI Card Placement -->
+                                <div id="ai-card-inst2-${ind.id}" class="hidden"></div>
+
+                                <!-- 0 - 4 Scale Selection -->
+                                <div class="flex items-center space-x-2 pt-1">
+                                    <span class="text-xs font-bold text-slate-500">SKOR:</span>
+                                    ${[0, 1, 2, 3, 4].map(score => `
+                                        <label class="cursor-pointer bg-slate-50 hover:bg-brand-50 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 transition">
+                                            <input type="radio" name="ind2_${ind.id}" value="${score}" onchange="updateScore2(${ind.id}, ${score})" class="mr-1"> ${score}
+                                        </label>
+                                    `).join('')}
+                                </div>
+
+                                <div>
+                                    <textarea placeholder="Komentar Kritis Supervisor..." onchange="updateNote2(${ind.id}, this.value)" class="w-full text-xs p-2 border border-slate-200 rounded-lg h-16 focus:ring-1 focus:ring-brand-500"></textarea>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('') + `
+                <!-- Instrument 2 Qualitative Section -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">BAGIAN KUALITATIF PERENCANAAN</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">KELEBIHAN PERENCANAAN PEMBELAJARAN</label>
+                        <textarea id="inst2-strengths" onchange="currentFormState.qualitative.strengths = this.value" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl h-20 focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">HAL YANG PERLU DITINGKATKAN DARI PERENCANAAN PEMBELAJARAN</label>
+                        <textarea id="inst2-improvements" onchange="currentFormState.qualitative.improvements = this.value" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl h-20 focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">REKOMENDASI DAN REVISI PERENCANAAN PEMBELAJARAN SESUAI PRINSIP PEMBELAJARAN MENDALAM</label>
+                        <textarea id="inst2-recom" onchange="currentFormState.qualitative.recommendations = this.value" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl h-20 focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* Update Form Progress & Scores */
+        function updateScore1(indId, score) {
+            currentFormState.scores[indId] = score;
+            updateProgressBar(40);
+        }
+
+        function updateNote1(indId, note) {
+            currentFormState.notes[indId] = note;
+        }
+
+        function updateScore2(indId, score) {
+            currentFormState.scores[indId] = score;
+            updateProgressBar(15);
+        }
+
+        function updateNote2(indId, note) {
+            currentFormState.notes[indId] = note;
+        }
+
+        function updateProgressBar(totalCount) {
+            const answered = Object.keys(currentFormState.scores).length;
+            const pct = Math.round((answered / totalCount) * 100);
+            
+            document.getElementById('progress-text').textContent = `${answered} dari ${totalCount} Indikator Selesai (${pct}%)`;
+            document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+        }
+
+        /* Document Upload & AI Analysis Handler */
+        function handleDocumentUpload(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const statusEl = document.getElementById('ai-document-status');
+            const statusText = document.getElementById('ai-status-text');
+            statusEl.classList.remove('hidden');
+            statusText.textContent = `Membaca file "${file.name}" & menganalisis bukti dokumen...`;
+
+            // Simulate AI Document Extraction Delay
+            setTimeout(() => {
+                statusText.textContent = `Analisis AI selesai! Bukti & rekomendasi skor telah ditambahkan pada indikator.`;
+                
+                // Inject AI Cards
+                if(currentFormState.type === 'PELAKSANAAN') {
+                    [1, 2, 4, 7, 23].forEach(id => {
+                        injectAICardInst1(id);
+                    });
+                } else {
+                    [1, 3, 7, 13].forEach(id => {
+                        injectAICardInst2(id);
+                    });
+                }
+
+                setTimeout(() => {
+                    statusEl.classList.add('hidden');
+                }, 4000);
+            }, 2000);
+        }
+
+        function injectAICardInst1(id) {
+            const container = document.getElementById(`ai-card-inst1-${id}`);
+            if(!container) return;
+
+            container.classList.remove('hidden');
+            container.innerHTML = `
+                <div class="my-2 p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1.5 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-indigo-900 flex items-center space-x-1">
+                            <i data-lucide="bot" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>ANALISIS AI DOKUMEN</span>
+                        </span>
+                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">✓ TERIDENTIFIKASI</span>
+                    </div>
+                    <div>
+                        <strong class="text-indigo-950">BUKTI DARI DOKUMEN:</strong>
+                        <p class="italic text-slate-700 bg-white p-2 rounded border border-indigo-100 mt-0.5">"Modul Ajar Halaman 3: Guru mengajukan pertanyaan 'Bagaimana sel merespons racun lingkungan?' pada kegiatan apersepsi."</p>
+                    </div>
+                    <div>
+                        <strong class="text-indigo-950">ANALISIS AI:</strong>
+                        <span class="text-slate-700">Pertanyaan pemantik telah mendorong penalaran kritis dan berkesadaran siswa.</span>
+                    </div>
+                    <div class="flex items-center space-x-2 pt-1 border-t border-indigo-100">
+                        <span class="font-bold text-indigo-900">REKOMENDASI SKOR AI: <span class="text-emerald-700 font-extrabold">1 (Sesuai)</span></span>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function injectAICardInst2(id) {
+            const container = document.getElementById(`ai-card-inst2-${id}`);
+            if(!container) return;
+
+            container.classList.remove('hidden');
+            container.innerHTML = `
+                <div class="my-2 p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1.5 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-indigo-900 flex items-center space-x-1">
+                            <i data-lucide="bot" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>ANALISIS AI DOKUMEN</span>
+                        </span>
+                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">✓ TERIDENTIFIKASI</span>
+                    </div>
+                    <div>
+                        <strong class="text-indigo-950">BUKTI DARI DOKUMEN:</strong>
+                        <p class="italic text-slate-700 bg-white p-2 rounded border border-indigo-100 mt-0.5">"RPP Bagian Tujuan & Asesmen: Rubrik penilaian proyek sains terintegrasi dengan kriteria penalaran kritis Profil Pelajar."</p>
+                    </div>
+                    <div class="flex items-center space-x-2 pt-1 border-t border-indigo-100">
+                        <span class="font-bold text-indigo-900">REKOMENDASI SKOR AI: <span class="text-emerald-700 font-extrabold">4 (Sangat Baik)</span></span>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        /* Save & Submit Supervision */
+        function submitSupervisionForm() {
+            const db = getDB();
+            const totalRequired = currentFormState.type === 'PELAKSANAAN' ? 40 : 15;
+            const answeredCount = Object.keys(currentFormState.scores).length;
+
+            if (answeredCount < totalRequired) {
+                alert(`Peringatan: Anda baru mengisi ${answeredCount} dari ${totalRequired} indikator. Harap lengkapi semua indikator sebelum menyimpan.`);
+                return;
+            }
+
+            // Calculation
+            let totalScore = 0;
+            Object.values(currentFormState.scores).forEach(s => totalScore += parseInt(s));
+
+            let maxScore = currentFormState.type === 'PELAKSANAAN' ? 120 : 60;
+            let finalGrade = Math.round((totalScore / maxScore) * 100);
+            
+            let category = 'Kurang';
+            if (finalGrade >= 86) category = 'Amat Baik';
+            else if (finalGrade >= 70) category = 'Baik';
+
+            const selectedTeacher = db.users.find(u => u.id === currentFormState.teacherId);
+
+            const newSupervision = {
+                id: 'SUPV-' + Date.now(),
+                teacherId: currentFormState.teacherId,
+                teacherName: selectedTeacher ? selectedTeacher.name : 'Guru',
+                mapel: selectedTeacher ? selectedTeacher.mapel : '',
+                school: selectedTeacher ? selectedTeacher.unit : '',
+                date: document.getElementById('form-date').value,
+                supervisorName: document.getElementById('form-supervisor').value,
+                type: currentFormState.type,
+                totalScore: totalScore,
+                maxScore: maxScore,
+                finalGrade: finalGrade,
+                category: category,
+                status: 'Selesai',
+                scores: currentFormState.scores,
+                notes: currentFormState.notes,
+                qualitative: currentFormState.qualitative,
+                analysisAI: {
+                    strengths: "Guru sangat menguasai pembelajaran mendalam dan pelibatan murid aktif.",
+                    improvements: "Diperlukan penguatan media interaktif dan manajemen alokasi waktu penutup.",
+                    conclusion: `Supervisi ${currentFormState.type} telah terlaksana dengan hasil ${category} (${finalGrade}).`,
+                    recommendation: "Meningkatkan pemanfaatan teknologi interaktif berbasis PhET/BioMan.",
+                    followUp: "Mengikuti pelatihan pembuatan media visual interaktif."
+                }
+            };
+
+            db.supervisions.unshift(newSupervision);
+            saveDB(db);
+
+            navigateTo('supervision-result', { supervisionId: newSupervision.id });
+        }
+    </script>
+
+    <script>
+        function renderSupervisionResult(container, supervisionId) {
+            const db = getDB();
+            const supv = db.supervisions.find(s => s.id === supervisionId) || db.supervisions[0];
+            if(!supv) return;
+
+            const teacher = db.users.find(u => u.id === supv.teacherId) || {};
+
+            container.innerHTML = `
+                <!-- Action Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm no-print">
+                    <div>
+                        <span class="text-xs font-bold text-brand-600 uppercase tracking-wider block">Hasil & Dokumen Laporan</span>
+                        <h1 class="text-xl font-bold text-slate-800">Laporan Hasil Supervisi Guru</h1>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="generatePDFReport()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition flex items-center space-x-2">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>GENERATE PDF</span>
+                        </button>
+                        <button onclick="navigateTo('history')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition">
+                            Kembali ke Riwayat
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Print-Ready Printable Area -->
+                <div id="pdf-report-document" class="bg-white p-8 sm:p-10 rounded-2xl border border-slate-200 shadow-lg space-y-6 text-slate-800">
+                    
+                    <!-- Official School Header / Kop Surat -->
+                    <div class="border-b-2 border-slate-900 pb-4 text-center space-y-1">
+                        <div class="text-base font-bold uppercase tracking-wider">${supv.school || 'SMA NEGERI 1 DIGITAL'}</div>
+                        <div class="text-xl font-extrabold uppercase text-brand-900">LAPORAN HASIL SUPERVISI & TELAAH PEMBELAJARAN</div>
+                        <div class="text-xs text-slate-500">Alamat: Jl. Edukasi Digital No. 1, Kota Pendidikan | Telepon: (021) 555-0192</div>
+                    </div>
+
+                    <!-- Identitas Table -->
+                    <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div>
+                            <table class="w-full">
+                                <tr><td class="w-32 font-semibold text-slate-500 py-1">Nama Guru</td><td class="font-bold py-1">: ${supv.teacherName}</td></tr>
+                                <tr><td class="font-semibold text-slate-500 py-1">NIP/NUPTK</td><td class="py-1">: ${teacher.nip || '-'}</td></tr>
+                                <tr><td class="font-semibold text-slate-500 py-1">Mata Pelajaran</td><td class="py-1">: ${supv.mapel}</td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <table class="w-full">
+                                <tr><td class="w-32 font-semibold text-slate-500 py-1">Tanggal Supervisi</td><td class="py-1">: ${supv.date}</td></tr>
+                                <tr><td class="font-semibold text-slate-500 py-1">Jenis Supervisi</td><td class="py-1">: ${supv.type}</td></tr>
+                                <tr><td class="font-semibold text-slate-500 py-1">Supervisor</td><td class="py-1">: ${supv.supervisorName}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Score Summary Box -->
+                    <div class="bg-gradient-to-r from-slate-900 to-brand-900 text-white p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-brand-300 uppercase">Capaian Evaluasi Supervisi</div>
+                            <div class="text-3xl font-extrabold mt-1">${supv.finalGrade} <span class="text-sm font-normal text-slate-300">/ 100</span></div>
+                            <div class="text-xs text-slate-300 mt-1">Jumlah Skor: ${supv.totalScore} dari Maksimal ${supv.maxScore}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block px-4 py-1.5 rounded-full text-sm font-bold bg-white text-brand-900 shadow">
+                                Kategori: ${supv.category}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Qualitative & AI Analysis Section -->
+                    <div class="space-y-4 text-xs">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <h3 class="font-bold text-slate-800 uppercase text-xs mb-1">Kekuatan Guru</h3>
+                            <p class="text-slate-700">${supv.analysisAI?.strengths || supv.qualitative?.strengths || 'Guru mampu mengelola suasana kelas interaktif.'}</p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <h3 class="font-bold text-slate-800 uppercase text-xs mb-1">Area Perbaikan & Yang Perlu Ditingkatkan</h3>
+                            <p class="text-slate-700">${supv.analysisAI?.improvements || supv.qualitative?.improvements || 'Pengembangan media visual interaktif dan alokasi waktu penutup.'}</p>
+                        </div>
+
+                        <div class="p-4 bg-brand-50 rounded-xl border border-brand-100">
+                            <h3 class="font-bold text-brand-900 uppercase text-xs mb-1 flex items-center space-x-1">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i>
+                                <span>Analisis AI & Rekomendasi Terarah</span>
+                            </h3>
+                            <p class="text-slate-700 mt-1">${supv.analysisAI?.recommendation || 'Disarankan mengintegrasikan platform PhET Simulation pada aktivitas pemahaman konsep.'}</p>
+                        </div>
+                    </div>
+
+                    <!-- Signature Section -->
+                    <div class="pt-8 grid grid-cols-2 gap-8 text-center text-xs">
+                        <div>
+                            <p class="text-slate-500">Guru yang Disupervisi,</p>
+                            <div class="h-16"></div>
+                            <p class="font-bold underline text-slate-800">${supv.teacherName}</p>
+                            <p class="text-slate-500">NIP. ${teacher.nip || '-------------------'}</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500">Supervisor / Evaluator,</p>
+                            <div class="h-16"></div>
+                            <p class="font-bold underline text-slate-800">${supv.supervisorName}</p>
+                            <p class="text-slate-500">NIP. 197503122000031001</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            lucide.createIcons();
+        }
+
+        /* PDF Generation using html2pdf.js */
+        function generatePDFReport() {
+            const element = document.getElementById('pdf-report-document');
+            const opt = {
+                margin:       [0.4, 0.4, 0.4, 0.4],
+                filename:     'Laporan_Supervisi_Guru.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+
+    <script>
+        let fastSupervisionIndex = 0;
+        let fastScores = {};
+
+        function renderFastSupervision(container) {
+            const db = getDB();
+            const teachers = db.users.filter(u => u.role === 'GURU');
+            const totalInds = 40;
+            const currentInd = INSTRUMENT_1_DATA.flatMap(g => g.indicators)[fastSupervisionIndex];
+
+            container.innerHTML = `
+                <div class="bg-amber-500 text-white p-4 rounded-2xl shadow flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                        <span class="font-bold text-sm">MODE SUPERVISI CEPAT (MOBILE OPTIMIZED)</span>
+                    </div>
+                    <button onclick="navigateTo('dashboard')" class="text-white hover:text-amber-100 text-xs font-semibold">
+                        Keluar
+                    </button>
+                </div>
+
+                <!-- Express Progress Indicator -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200">
+                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                        <span>Indikator ${fastSupervisionIndex + 1} dari ${totalInds}</span>
+                        <span>${Math.round(((fastSupervisionIndex + 1)/totalInds)*100)}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-amber-500 h-2 rounded-full" style="width: ${((fastSupervisionIndex + 1)/totalInds)*100}%"></div>
+                    </div>
+                </div>
+
+                <!-- Single Indicator Express Card -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-6 text-center">
+                    <div class="text-xs font-bold text-amber-600 bg-amber-50 p-2 rounded-lg inline-block">
+                        INDIKATOR NO. ${currentInd.id}
+                    </div>
+
+                    <p class="text-base font-semibold text-slate-800 leading-relaxed">
+                        "${currentInd.text}"
+                    </p>
+
+                    <!-- Large Tap Option Buttons for Mobile -->
+                    <div class="grid grid-cols-1 gap-3 pt-2">
+                        <button onclick="selectFastScore(${currentInd.id}, 1)" class="p-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-sm transition">
+                            ✓ Sesuai (1)
+                        </button>
+                        <button onclick="selectFastScore(${currentInd.id}, 2)" class="p-4 rounded-xl border-2 border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-sm transition">
+                            ⚠ Sesuai Sebagian (2)
+                        </button>
+                        <button onclick="selectFastScore(${currentInd.id}, 3)" class="p-4 rounded-xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-sm transition">
+                            📝 Sesuai Catatan (3)
+                        </button>
+                    </div>
+
+                    <!-- Navigation Controls -->
+                    <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+                        <button onclick="prevFastInd()" ${fastSupervisionIndex === 0 ? 'disabled' : ''} class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+                            [SEBELUMNYA]
+                        </button>
+                        <button onclick="nextFastInd()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold">
+                            [BERIKUTNYA]
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            lucide.createIcons();
+        }
+
+        function selectFastScore(indId, score) {
+            fastScores[indId] = score;
+            nextFastInd();
+        }
+
+        function nextFastInd() {
+            if (fastSupervisionIndex < 39) {
+                fastSupervisionIndex++;
+                renderFastSupervision(document.getElementById('content-area'));
+            } else {
+                alert("Seluruh 40 Indikator telah selesai diisi pada mode Supervisi Cepat!");
+                navigateTo('dashboard');
+            }
+        }
+
+        function prevFastInd() {
+            if (fastSupervisionIndex > 0) {
+                fastSupervisionIndex--;
+                renderFastSupervision(document.getElementById('content-area'));
+            }
+        }
+    </script>
+
+    <script>
+        let chatMessages = [
+            { role: 'assistant', text: 'Halo! Saya AI Asisten Supervisi. Ada yang bisa saya bantu terkait analisis indikator, rekomendasi perbaikan, atau ringkasan hasil supervisi guru?' }
+        ];
+
+        function renderAIAssistant(container) {
+            container.innerHTML = `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[650px]">
+                    <!-- Chat Header -->
+                    <div class="p-4 border-b border-slate-200 bg-slate-900 text-white rounded-t-2xl flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-brand-500 rounded-lg text-white">
+                                <i data-lucide="bot" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-sm">AI Asisten Supervisi Guru</h2>
+                                <p class="text-[10px] text-brand-300">Powered by Gemini AI • Khusus Asisten Supervisor</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages Stream -->
+                    <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50">
+                        ${chatMessages.map(m => `
+                            <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+                                <div class="max-w-[80%] p-3.5 rounded-2xl text-xs ${m.role === 'user' ? 'bg-brand-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-800 shadow-sm rounded-bl-none space-y-1'}">
+                                    ${m.text}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Suggested Prompts -->
+                    <div class="p-2 border-t border-slate-200 bg-white flex space-x-2 overflow-x-auto text-[11px]">
+                        <button onclick="sendQuickPrompt('Indikator apa yang paling perlu diperbaiki secara umum?')" class="px-3 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 rounded-full whitespace-nowrap text-slate-600 font-medium">
+                            💡 Indikator paling perlu diperbaiki?
+                        </button>
+                        <button onclick="sendQuickPrompt('Berikan rekomendasi tindak lanjut untuk media pembelajaran.')" class="px-3 py-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 rounded-full whitespace-nowrap text-slate-600 font-medium">
+                            📝 Rekomendasi media pembelajaran?
+                        </button>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="p-3 border-t border-slate-200 bg-white rounded-b-2xl flex space-x-2">
+                        <input type="text" id="chat-input-text" onkeypress="if(event.key==='Enter') sendChatMessage()" placeholder="Ketik pertanyaan terkait supervisi..." class="flex-1 p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 outline-none">
+                        <button onclick="sendChatMessage()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 rounded-xl text-xs font-bold transition">
+                            Kirim
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            lucide.createIcons();
+            scrollChatToBottom();
+        }
+
+        function sendQuickPrompt(promptText) {
+            document.getElementById('chat-input-text').value = promptText;
+            sendChatMessage();
+        }
+
+        async function sendChatMessage() {
+            const inputEl = document.getElementById('chat-input-text');
+            const text = inputEl.value.trim();
+            if(!text) return;
+
+            chatMessages.push({ role: 'user', text: text });
+            inputEl.value = '';
+            renderAIAssistant(document.getElementById('content-area'));
+
+            // Call Gemini API
+            const db = getDB();
+            const systemPrompt = `Anda adalah AI Asisten Supervisi Guru profesional. Tugas Anda membantu supervisor menganalisis data supervisi, menyusun rekomendasi tindak lanjut, dan mengevaluasi indikator pembelajaran mendalam. Data supervisi sekolah saat ini: ${JSON.stringify(db.supervisions)}. Berikan jawaban ringkas, solutif, dan berbasis indikator resmi.`;
+
+            try {
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: text }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const result = await response.json();
+                const aiReply = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, saya tidak dapat memproses tanggapan saat ini.";
+                
+                chatMessages.push({ role: 'assistant', text: aiReply });
+            } catch (err) {
+                chatMessages.push({ role: 'assistant', text: "Terjadi gangguan koneksi saat menghubungi Gemini AI API. Mohon periksa kembali jaringan Anda." });
+            }
+
+            renderAIAssistant(document.getElementById('content-area'));
+        }
+
+        function scrollChatToBottom() {
+            const container = document.getElementById('chat-messages-container');
+            if(container) container.scrollTop = container.scrollHeight;
+        }
+    </script>
+
+    <script>
+        function renderSupervisionHistory(container) {
+            const db = getDB();
+
+            container.innerHTML = `
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800">Riwayat & Dokumen Laporan Supervisi</h1>
+                        <p class="text-xs text-slate-500">Daftar seluruh observasi pelaksanaan dan telaah perencanaan.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 uppercase text-[11px] text-slate-500 font-bold">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Guru</th>
+                                    <th class="p-3">Mata Pelajaran</th>
+                                    <th class="p-3">Jenis</th>
+                                    <th class="p-3">Nilai</th>
+                                    <th class="p-3">Kategori</th>
+                                    <th class="p-3">Supervisor</th>
+                                    <th class="p-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${db.supervisions.map(s => `
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="p-3 font-semibold text-slate-800">${s.date}</td>
+                                        <td class="p-3 font-bold">${s.teacherName}</td>
+                                        <td class="p-3">${s.mapel}</td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${s.type === 'PELAKSANAAN' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}">
+                                                ${s.type}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 font-extrabold text-slate-800">${s.finalGrade}</td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${s.category === 'Amat Baik' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+                                                ${s.category}
+                                            </span>
+                                        </td>
+                                        <td class="p-3">${s.supervisorName}</td>
+                                        <td class="p-3 text-right space-x-2">
+                                            <button onclick="navigateTo('supervision-result', {supervisionId: '${s.id}'})" class="bg-brand-50 hover:bg-brand-100 text-brand-700 px-2.5 py-1 rounded text-[11px] font-bold">
+                                                Lihat Laporan
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        /* Follow-Up Management View */
+        function renderFollowUpPage(container) {
+            const db = getDB();
+
+            container.innerHTML = `
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800">Pemantauan Rencana Tindak Lanjut</h1>
+                    <p class="text-xs text-slate-500">Pelacakan rekomendasi perbaikan berbasis indikator supervisi.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="space-y-3">
+                        ${db.followUps.map(f => `
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col md:flex-row justify-between items-start gap-4">
+                                <div class="space-y-1 flex-1">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-bold text-sm text-slate-800">${f.finding}</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-200 rounded text-slate-700">Indikator: ${f.indicatorNo}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600"><strong>Rencana Tindakan:</strong> ${f.actionPlan}</p>
+                                    <p class="text-[11px] text-slate-400">Target Waktu: ${f.targetDate} | Penanggung Jawab: ${f.pic}</p>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <select onchange="updateFollowUpStatus('${f.id}', this.value)" class="text-xs p-2 border border-slate-200 rounded-lg font-bold">
+                                        <option value="BELUM DILAKSANAKAN" ${f.status === 'BELUM DILAKSANAKAN' ? 'selected' : ''}>BELUM DILAKSANAKAN</option>
+                                        <option value="DALAM PROSES" ${f.status === 'DALAM PROSES' ? 'selected' : ''}>DALAM PROSES</option>
+                                        <option value="SELESAI" ${f.status === 'SELESAI' ? 'selected' : ''}>SELESAI</option>
+                                    </select>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function updateFollowUpStatus(id, newStatus) {
+            const db = getDB();
+            const item = db.followUps.find(f => f.id === id);
+            if(item) {
+                item.status = newStatus;
+                saveDB(db);
+            }
+        }
+
+        /* Reflection Page View */
+        function renderReflectionPage(container) {
+            const db = getDB();
+
+            container.innerHTML = `
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800">Refleksi Pembelajaran Guru</h1>
+                    <p class="text-xs text-slate-500">Lembar refleksi mandiri pendidik pasca supervisi.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 max-w-2xl">
+                    <h3 class="text-sm font-bold text-slate-800 border-b pb-2">Isi Lembar Refleksi Mandiri</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Apa yang sudah berjalan baik saat pembelajaran?</label>
+                        <textarea id="refl-good" class="w-full text-xs p-2.5 border rounded-xl h-16"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Apa hal yang masih perlu diperbaiki?</label>
+                        <textarea id="refl-improve" class="w-full text-xs p-2.5 border rounded-xl h-16"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Apa tantangan utama yang dihadapi di kelas?</label>
+                        <textarea id="refl-challenge" class="w-full text-xs p-2.5 border rounded-xl h-16"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Dukungan apa yang dibutuhkan dari Sekolah/Supervisor?</label>
+                        <textarea id="refl-support" class="w-full text-xs p-2.5 border rounded-xl h-16"></textarea>
+                    </div>
+
+                    <button onclick="saveTeacherReflection()" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow">
+                        Simpan Refleksi
+                    </button>
+                </div>
+            `;
+        }
+
+        function saveTeacherReflection() {
+            const db = getDB();
+            const newRefl = {
+                id: 'RFL-' + Date.now(),
+                teacherId: 'TCH-001',
+                date: new Date().toISOString().split('T')[0],
+                good: document.getElementById('refl-good').value,
+                needsImprovement: document.getElementById('refl-improve').value,
+                challenges: document.getElementById('refl-challenge').value,
+                supportNeeded: document.getElementById('refl-support').value
+            };
+
+            db.reflections.unshift(newRefl);
+            saveDB(db);
+            alert("Refleksi mandiri berhasil disimpan!");
+            navigateTo('dashboard');
+        }
+    </script>
+
+    <script>
+        window.onload = function() {
+            updateRoleButtons();
+            navigateTo('dashboard');
+        };
+    </script>
+
+</body>
+</html>
